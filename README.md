@@ -41,7 +41,9 @@ Os importadores de CSV da conta e TXT do cartão estão fora do escopo inicial.
 ## Regras de negócio
 
 - A visão padrão é mensal; também é possível filtrar por dia ou por intervalo personalizado.
-- Receita, despesa, saldo e taxa de poupança são recalculados para o período e a origem selecionados.
+- As despesas podem ser filtradas por todas as origens, débito em conta ou cartão. Esse filtro atualiza as despesas, o saldo e a taxa de poupança, mas mantém as receitas de todas as origens no período.
+- A seção de receitas lista as entradas do período com data de realização, descrição, categoria, origem e total; transferências e despesas não são incluídas. O gráfico de meios de pagamento e a seção de receitas ocupam a largura da página.
+- A seção de despesas lista todos os lançamentos do período e permite filtrar por categoria, respeitando também os filtros ativos de origem e período.
 - Compras do cartão são despesas na data da compra. O débito da fatura na conta e o pagamento correspondente no OFX do cartão são tratados como transferência/liquidação e não geram uma segunda despesa.
 - O `FITID` é preservado e usado para identificar transações quando disponível. Sem identificador confiável, a deduplicação considera origem, data, valor, descrição normalizada e tipo.
 - Estornos e devoluções reduzem as despesas líquidas. Transferências não afetam os indicadores de receita e despesa.

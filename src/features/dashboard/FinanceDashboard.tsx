@@ -5,7 +5,7 @@ import { demoTransactions } from '../transactions/demo'
 import { filterTransactions, summarizeTransactions } from '../transactions/metrics'
 import type { PeriodMode, PeriodSelection, SourceFilter } from '../transactions/metrics'
 import type { Transaction } from '../transactions/types'
-import { CashFlowChart, CategoryChart, ChannelChart, TopExpensesTable } from './DashboardCharts'
+import { CashFlowChart, CategoryChart, ChannelChart, ExpensesTable, IncomeTable } from './DashboardCharts'
 import './FinanceDashboard.css'
 
 function currentDate(): string {
@@ -71,7 +71,8 @@ export default function FinanceDashboard() {
         <nav className="main-nav" aria-label="Navegação principal">
           <a className="nav-link active" href="#overview"><LayoutDashboard size={17} />Visão geral</a>
           <a className="nav-link" href="#analysis"><ChartNoAxesCombined size={17} />Análises</a>
-          <a className="nav-link" href="#transactions"><ArrowDownToLine size={17} />Lançamentos</a>
+          <a className="nav-link" href="#transactions"><ArrowDownToLine size={17} />Despesas</a>
+          <a className="nav-link" href="#incomes"><ArrowDownToLine size={17} />Receitas</a>
         </nav>
         <div className="sidebar-bottom"><span className="local-indicator" />Arquivos processados localmente</div>
       </aside>
@@ -97,9 +98,9 @@ export default function FinanceDashboard() {
             {period.mode === 'day' && <label className="date-field"><span className="visually-hidden">Dia do painel</span><input type="date" value={period.day} onChange={(event) => setPeriod((current) => ({ ...current, day: event.target.value }))} /></label>}
             {period.mode === 'custom' && <div className="range-fields"><label><span className="visually-hidden">Data inicial</span><input type="date" value={period.start} onChange={(event) => updateRange('start', event.target.value)} /></label><span>até</span><label><span className="visually-hidden">Data final</span><input type="date" value={period.end} onChange={(event) => updateRange('end', event.target.value)} /></label></div>}
           </div>
-          <div className="source-switch" role="group" aria-label="Filtrar por origem">
-            <button type="button" aria-pressed={source === 'all'} className={source === 'all' ? 'selected' : ''} onClick={() => setSource('all')}>Tudo</button>
-            <button type="button" aria-pressed={source === 'account'} className={source === 'account' ? 'selected' : ''} onClick={() => setSource('account')}><Landmark size={14} />Conta</button>
+          <div className="source-switch" role="group" aria-label="Filtrar despesas por origem">
+            <button type="button" aria-pressed={source === 'all'} className={source === 'all' ? 'selected' : ''} onClick={() => setSource('all')}>Todas</button>
+            <button type="button" aria-pressed={source === 'account'} className={source === 'account' ? 'selected' : ''} onClick={() => setSource('account')}><Landmark size={14} />Débito em conta</button>
             <button type="button" aria-pressed={source === 'credit-card'} className={source === 'credit-card' ? 'selected' : ''} onClick={() => setSource('credit-card')}><CreditCard size={14} />Cartão</button>
           </div>
         </section>
@@ -108,15 +109,17 @@ export default function FinanceDashboard() {
 
         <section className="kpi-grid" aria-label="Indicadores do período">
           <article className="kpi-card income-kpi"><div className="kpi-heading"><span>Receita total</span><span className="kpi-icon"><ArrowDownToLine size={17} /></span></div><strong>{formatCurrency(summary.incomeCents)}</strong><span className="kpi-note">Entradas no período</span></article>
-          <article className="kpi-card expense-kpi"><div className="kpi-heading"><span>Despesa total</span><span className="kpi-icon"><ArrowUpRight size={17} /></span></div><strong>{formatCurrency(summary.expenseCents)}</strong><span className="kpi-note">Compras e pagamentos diretos</span></article>
+          <article className="kpi-card expense-kpi"><div className="kpi-heading"><span>Despesa total</span><span className="kpi-icon"><ArrowUpRight size={17} /></span></div><strong>{formatCurrency(summary.expenseCents)}</strong><span className="kpi-note">{expenseSourceNote(source)}</span></article>
           <article className="kpi-card balance-kpi"><div className="kpi-heading"><span>Saldo do período</span><span className="kpi-icon"><WalletCards size={17} /></span></div><strong>{formatCurrency(summary.balanceCents)}</strong><span className="kpi-note">Receitas menos despesas</span></article>
           <article className="kpi-card savings-kpi"><div className="kpi-heading"><span>Taxa de poupança</span><span className="kpi-icon"><ChartNoAxesCombined size={17} /></span></div><strong>{summary.savingsRate.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%</strong><span className="kpi-note">Do total de receitas</span></article>
         </section>
 
         <section className="charts-grid" id="analysis" aria-label="Análises do período">
           <CashFlowChart transactions={visibleTransactions} /><CategoryChart transactions={visibleTransactions} />
-          <ChannelChart transactions={visibleTransactions} /><TopExpensesTable transactions={visibleTransactions} />
         </section>
+        <ChannelChart transactions={visibleTransactions} />
+        <IncomeTable transactions={visibleTransactions} />
+        <ExpensesTable transactions={visibleTransactions} />
         <footer className="page-footer">Importação local · OFX 1.02 · Pagamentos de fatura não entram como despesa</footer>
       </main>
     </div>
@@ -125,4 +128,10 @@ export default function FinanceDashboard() {
 
 function formatCurrency(amountCents: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amountCents / 100)
+}
+
+function expenseSourceNote(source: SourceFilter): string {
+  if (source === 'account') return 'Débitos diretos em conta'
+  if (source === 'credit-card') return 'Compras no cartão'
+  return 'Cartão e débitos em conta'
 }

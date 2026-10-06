@@ -26,7 +26,7 @@ export interface CategoryTotal {
 
 export function filterTransactions(transactions: Transaction[], period: PeriodSelection, source: SourceFilter): Transaction[] {
   return transactions.filter((transaction) => {
-    if (source !== 'all' && transaction.source !== source) return false
+    if (source !== 'all' && (transaction.kind === 'expense' || transaction.kind === 'refund') && transaction.source !== source) return false
     if (period.mode === 'day') return transaction.date === period.day
     if (period.mode === 'month') return transaction.date.startsWith(period.month)
     return transaction.date >= period.start && transaction.date <= period.end
@@ -82,8 +82,15 @@ export function buildCategoryTotals(transactions: Transaction[]): CategoryTotal[
     .sort((left, right) => right.amountCents - left.amountCents)
 }
 
-export function topExpenses(transactions: Transaction[], limit = 6): Transaction[] {
-  return transactions.filter((transaction) => transaction.kind === 'expense')
+export function expenseCategories(transactions: Transaction[]): string[] {
+  return [...new Set(transactions
+    .filter((transaction) => transaction.kind === 'expense')
+    .map((transaction) => transaction.category))]
+    .sort((left, right) => left.localeCompare(right, 'pt-BR'))
+}
+
+export function filterExpensesByCategory(transactions: Transaction[], category: string): Transaction[] {
+  return transactions
+    .filter((transaction) => transaction.kind === 'expense' && (category === 'all' || transaction.category === category))
     .sort((left, right) => Math.abs(right.amountCents) - Math.abs(left.amountCents))
-    .slice(0, limit)
 }

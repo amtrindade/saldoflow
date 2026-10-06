@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { ArrowDownRight, ArrowUpRight, CreditCard, Landmark } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { categoryColor } from '../transactions/ofx'
-import { buildCategoryTotals, buildDailySeries, topExpenses } from '../transactions/metrics'
+import { buildCategoryTotals, buildDailySeries, expenseCategories, filterExpensesByCategory } from '../transactions/metrics'
 import type { Transaction } from '../transactions/types'
 
 interface ChartProps { transactions: Transaction[] }
@@ -78,21 +79,67 @@ export function ChannelChart({ transactions }: ChartProps) {
   )
 }
 
-export function TopExpensesTable({ transactions }: ChartProps) {
-  const rows = topExpenses(transactions, 6)
+export function ExpensesTable({ transactions }: ChartProps) {
+  const [category, setCategory] = useState('all')
+  const categories = expenseCategories(transactions)
+  const rows = filterExpensesByCategory(transactions, category)
+
   return (
     <section className="panel expenses-panel" id="transactions" aria-labelledby="expenses-title">
-      <div className="panel-heading"><div><p className="eyebrow">MAIORES VALORES</p><h2 id="expenses-title">Despesas do período</h2></div><span className="table-count">{rows.length} lançamentos</span></div>
+      <div className="panel-heading expenses-heading">
+        <div><p className="eyebrow">LANÇAMENTOS DO PERÍODO</p><h2 id="expenses-title">Despesas</h2></div>
+        <div className="expense-heading-actions">
+          <label className="category-filter">
+            <span>Categoria</span>
+            <select aria-label="Filtrar despesas por categoria" value={category} onChange={(event) => setCategory(event.currentTarget.value)}>
+              <option value="all">Todas as categorias</option>
+              {category !== 'all' && !categories.includes(category) && <option value={category}>{category}</option>}
+              {categories.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </label>
+          <span className="table-count">{rows.length} lançamentos</span>
+        </div>
+      </div>
       {rows.length ? <div className="table-scroll">
         <table>
-          <thead><tr><th>Descrição</th><th>Origem</th><th className="amount-cell">Valor</th></tr></thead>
+          <thead><tr><th>Descrição</th><th>Data de realização</th><th>Origem</th><th className="amount-cell">Valor</th></tr></thead>
           <tbody>{rows.map((transaction) => <tr key={transaction.id}>
-            <td><strong>{shortDescription(transaction.description)}</strong><span className="table-subtitle">{formatDate(transaction.date)} · {transaction.category}</span></td>
+            <td><strong>{shortDescription(transaction.description)}</strong><span className="table-subtitle">{transaction.category}</span></td>
+            <td>{formatDate(transaction.date)}</td>
             <td><span className={`source-badge ${transaction.source}`}>{transaction.source === 'account' ? <Landmark size={13} /> : <CreditCard size={13} />}{transaction.source === 'account' ? 'Conta' : 'Cartão'}</span></td>
             <td className="amount-cell expense-amount"><ArrowDownRight size={15} />{currency(Math.abs(transaction.amountCents) / 100)}</td>
           </tr>)}</tbody>
         </table>
-      </div> : <ChartEmpty />}
+      </div> : <div className="chart-empty"><ArrowUpRight size={19} /><span>{category === 'all' ? 'Sem lançamentos neste período' : `Sem despesas na categoria ${category}`}</span></div>}
+    </section>
+  )
+}
+
+export function IncomeTable({ transactions }: ChartProps) {
+  const rows = transactions
+    .filter((transaction) => transaction.kind === 'income')
+    .sort((left, right) => right.date.localeCompare(left.date) || left.description.localeCompare(right.description))
+  const totalCents = rows.reduce((total, transaction) => total + transaction.amountCents, 0)
+
+  return (
+    <section className="panel income-panel" id="incomes" aria-labelledby="income-title">
+      <div className="panel-heading">
+        <div><p className="eyebrow">ENTRADAS NO PERÍODO</p><h2 id="income-title">Receitas</h2></div>
+        <div className="income-summary"><span className="table-count">{rows.length} lançamentos</span><strong>{currency(totalCents / 100)}</strong></div>
+      </div>
+      {rows.length ? <div className="table-scroll income-table-scroll">
+        <table>
+          <thead><tr><th>Descrição</th><th>Data de realização</th><th>Origem</th><th className="amount-cell">Valor</th></tr></thead>
+          <tbody>{rows.map((transaction) => (
+            <tr key={transaction.id}>
+              <td><strong>{shortDescription(transaction.description)}</strong><span className="table-subtitle">{transaction.category}</span></td>
+              <td>{formatDate(transaction.date)}</td>
+              <td><span className={`source-badge ${transaction.source}`}>{transaction.source === 'account' ? <Landmark size={13} /> : <CreditCard size={13} />}{transaction.source === 'account' ? 'Conta' : 'Cartão'}</span></td>
+              <td className="amount-cell income-amount"><ArrowUpRight size={15} />{currency(transaction.amountCents / 100)}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div> : <div className="chart-empty"><ArrowUpRight size={19} /><span>Sem receitas neste período</span></div>}
     </section>
   )
 }

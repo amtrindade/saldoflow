@@ -68,6 +68,16 @@
 .category-legend strong { color: #35483f; font-size: 10px; font-weight: 650; }
 .category-dot { width: 8px; height: 8px; border-radius: 2px; }
 .channel-panel, .expenses-panel { min-height: 315px; }
+.channel-panel { width: 100%; margin-top: 14px; }
+.expenses-heading { align-items: center; }
+.expense-heading-actions { display: flex; align-items: center; gap: 12px; }
+.category-filter { display: flex; align-items: center; gap: 7px; color: #78857f; font-size: 10px; }
+.category-filter select { min-height: 31px; max-width: 190px; padding: 0 26px 0 9px; border: 1px solid #dfe8e3; border-radius: 5px; background: #fff; color: #35483f; font: inherit; font-size: 10px; }
+.income-panel { align-self: start; }
+.income-summary { display: flex; align-items: flex-end; flex-direction: column; gap: 4px; }
+.income-summary strong { color: #377a5f; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 650; }
+.income-table-scroll { max-height: 360px; }
+.expenses-panel { width: 100%; margin-top: 14px; }
 .channel-legend { margin-top: 3px; }
 .table-count { color: #89958f; font-size: 10px; }
 .table-scroll { overflow-x: auto; margin-top: 11px; }
@@ -84,6 +94,8 @@ tbody td strong { display: block; overflow: hidden; max-width: 230px; color: #35
 .amount-cell { text-align: right; white-space: nowrap; }
 .expense-amount { color: #b95743; font-size: 10px; font-weight: 650; }
 .expense-amount svg { vertical-align: -3px; }
+.income-amount { color: #377a5f; font-size: 10px; font-weight: 650; }
+.income-amount svg { vertical-align: -3px; }
 .chart-empty { display: flex; min-height: 230px; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #9aa59f; font-size: 11px; }
 .chart-empty svg { color: #9bb4a8; }
 .page-footer { padding: 19px 2px 0; color: #8b9690; font-size: 10px; }
@@ -119,6 +131,9 @@ tbody td strong { display: block; overflow: hidden; max-width: 230px; color: #35
   .panel { padding: 15px 13px 12px; }
   .chart-panel, .category-panel { min-height: 0; }
   .chart-legend { font-size: 9px; }
+  .expenses-heading { align-items: flex-start; flex-direction: column; }
+  .expense-heading-actions { width: 100%; justify-content: space-between; }
+  .income-table-scroll { max-height: 300px; }
   .range-fields { width: 100%; }
   .range-fields input { width: 126px; min-width: 0; }
 }
