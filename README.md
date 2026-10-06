@@ -59,4 +59,3 @@ Os importadores de CSV da conta e TXT do cartão estão fora do escopo inicial.
 
 - `src/features/transactions`: modelo, importação OFX, categorização e métricas
 - `src/features/dashboard`: componentes do painel e visualizações
-- `extratos/`: arquivos de exemplo utilizados como dados de teste
