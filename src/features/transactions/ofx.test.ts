@@ -18,6 +18,7 @@ describe('importação OFX', () => {
     expect(parsed.transactions.length).toBeGreaterThan(30)
     expect(parsed.transactions.some((transaction) => transaction.kind === 'transfer')).toBe(true)
     expect(parsed.transactions.every((transaction) => /^\d{4}-\d{2}-\d{2}$/.test(transaction.date))).toBe(true)
+    expect(parsed.coverage).toMatchObject({ source: 'account', start: '2026-09-30', end: '2026-10-06' })
   })
 
   it('reconhece compras, estornos e pagamento no OFX do cartão', () => {
@@ -27,6 +28,7 @@ describe('importação OFX', () => {
     expect(parsed.transactions.some((transaction) => transaction.kind === 'refund')).toBe(true)
     expect(parsed.transactions.some((transaction) => transaction.kind === 'transfer')).toBe(true)
     expect(parsed.transactions.some((transaction) => transaction.fitId)).toBe(true)
+    expect(parsed.coverage).toMatchObject({ source: 'credit-card', start: '2025-11-03', end: '2026-08-30' })
   })
 
   it('remove duplicatas pelo identificador da transação', () => {

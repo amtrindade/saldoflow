@@ -1,5 +1,5 @@
 import { parseStrict } from 'ofx-js'
-import type { Transaction, TransactionKind, TransactionSource } from './types'
+import type { StatementCoverage, Transaction, TransactionKind, TransactionSource } from './types'
 
 interface OfxRecord {
   TRNTYPE?: string
@@ -11,7 +11,7 @@ interface OfxRecord {
 }
 
 interface OfxStatement {
-  BANKTRANLIST?: { STMTTRN?: OfxRecord | OfxRecord[] }
+  BANKTRANLIST?: { DTSTART?: string; DTEND?: string; STMTTRN?: OfxRecord | OfxRecord[] }
 }
 
 interface OfxRoot {
@@ -24,6 +24,7 @@ interface OfxRoot {
 export interface ParsedOfxFile {
   source: TransactionSource
   transactions: Transaction[]
+  coverage?: StatementCoverage
 }
 
 const categoryColors: Record<string, string> = {
@@ -106,7 +107,10 @@ export function parseOfxText(text: string): ParsedOfxFile {
     .map((record) => mapRecord(record, source))
     .filter((transaction): transaction is Transaction => transaction !== undefined)
   if (transactions.length === 0) throw new Error('Nenhuma transação válida foi encontrada no arquivo OFX.')
-  return { source, transactions }
+  const start = dateFromOfx(statement?.BANKTRANLIST?.DTSTART)
+  const end = dateFromOfx(statement?.BANKTRANLIST?.DTEND)
+  const coverage = start && end && start <= end ? { source, start, end } : undefined
+  return { source, transactions, coverage }
 }
 
 export function decodeOfxBuffer(buffer: ArrayBuffer): string {

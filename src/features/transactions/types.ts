@@ -11,3 +11,9 @@ export interface Transaction {
   kind: TransactionKind
   amountCents: number
 }
+
+export interface StatementCoverage {
+  source: TransactionSource
+  start: string
+  end: string
+}

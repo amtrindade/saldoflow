@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react'
 import { ArrowDownToLine, ArrowUpRight, ChartNoAxesCombined, CreditCard, LayoutDashboard, Landmark, Upload, WalletCards } from 'lucide-react'
 import { decodeOfxBuffer, mergeTransactions, parseOfxText } from '../transactions/ofx'
-import { demoTransactions } from '../transactions/demo'
+import { demoCoverage, demoTransactions } from '../transactions/demo'
 import { filterTransactions, summarizeTransactions } from '../transactions/metrics'
 import type { PeriodMode, PeriodSelection, SourceFilter } from '../transactions/metrics'
-import type { Transaction } from '../transactions/types'
-import { CashFlowChart, CategoryChart, ChannelChart, ExpensesTable, IncomeTable } from './DashboardCharts'
+import type { StatementCoverage, Transaction } from '../transactions/types'
+import { CashFlowChart, CategoryChart, ChannelChart, ExpensesTable, IncomeTable, OpportunityAnalytics } from './DashboardCharts'
 import './FinanceDashboard.css'
 
 function currentDate(): string {
@@ -21,6 +21,7 @@ function initialPeriod(): PeriodSelection {
 
 export default function FinanceDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>(demoTransactions)
+  const [coverage, setCoverage] = useState<StatementCoverage[]>(demoCoverage)
   const [isDemo, setIsDemo] = useState(true)
   const [period, setPeriod] = useState<PeriodSelection>(initialPeriod)
   const [source, setSource] = useState<SourceFilter>('all')
@@ -37,12 +38,17 @@ export default function FinanceDashboard() {
     try {
       const groups = await Promise.all(Array.from(files).map(async (file) => {
         const text = decodeOfxBuffer(await file.arrayBuffer())
-        return parseOfxText(text).transactions
+        return parseOfxText(text)
       }))
-      const incoming = mergeTransactions(...groups)
+      const incoming = mergeTransactions(...groups.map((group) => group.transactions))
       const combined = isDemo ? incoming : mergeTransactions(transactions, incoming)
       const latestMonth = combined[0]?.date.slice(0, 7)
       setTransactions(combined)
+      setCoverage((current) => {
+        const imported = groups.flatMap((group) => group.coverage ?? [])
+        const merged = isDemo ? imported : [...current, ...imported]
+        return [...new Map(merged.map((period) => [`${period.source}:${period.start}:${period.end}`, period])).values()]
+      })
       setIsDemo(false)
       setSource('all')
       if (latestMonth) setPeriod((current) => ({ ...current, mode: 'month', month: latestMonth }))
@@ -118,6 +124,7 @@ export default function FinanceDashboard() {
           <CashFlowChart transactions={visibleTransactions} /><CategoryChart transactions={visibleTransactions} />
         </section>
         <ChannelChart transactions={visibleTransactions} />
+        <OpportunityAnalytics transactions={visibleTransactions} allTransactions={transactions} coverage={coverage} source={source} />
         <IncomeTable transactions={visibleTransactions} />
         <ExpensesTable transactions={visibleTransactions} />
         <footer className="page-footer">Importação local · OFX 1.02 · Pagamentos de fatura não entram como despesa</footer>
