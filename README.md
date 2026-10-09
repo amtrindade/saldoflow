@@ -1,6 +1,6 @@
 # SaldoFlow: PoC de finanças pessoais
 
-Aplicação local para importar extratos de conta corrente e cartão de crédito, conciliar lançamentos e validar painéis de receitas, despesas e fluxo de caixa. Nesta fase, os dados ficam em memória no navegador; não há servidor nem banco de dados.
+Aplicação local para importar extratos de conta corrente e cartão de crédito, conciliar lançamentos e validar painéis de receitas, despesas e fluxo de caixa. Inclui análises de maiores gastos, classificação indicativa de essencialidade, cobranças potencialmente recorrentes e tendências históricas. Nesta fase, os dados ficam em memória no navegador; não há servidor nem banco de dados.
 
 ## Objetivo
 
@@ -28,7 +28,7 @@ npm run preview # inicia uma prévia da versão de produção
 
 ## Como usar
 
-Ao abrir, o painel exibe dados demonstrativos para permitir a validação visual. Selecione **Importar OFX** para escolher um ou mais extratos. A primeira importação substitui os dados demonstrativos; as próximas são combinadas com os lançamentos já importados.
+Ao abrir, o painel exibe dados demonstrativos dos últimos 12 meses para permitir a validação visual das tendências. Selecione **Importar OFX** para escolher um ou mais extratos. A primeira importação substitui os dados demonstrativos; as próximas são combinadas com os lançamentos já importados.
 
 Os arquivos são processados no navegador e não são enviados a um servidor. Os dados permanecem apenas durante a sessão: ao recarregar a página, os dados demonstrativos voltam a ser exibidos.
 
@@ -48,6 +48,11 @@ Os importadores de CSV da conta e TXT do cartão estão fora do escopo inicial.
 - O `FITID` é preservado e usado para identificar transações quando disponível. Sem identificador confiável, a deduplicação considera origem, data, valor, descrição normalizada e tipo.
 - Estornos e devoluções reduzem as despesas líquidas. Transferências não afetam os indicadores de receita e despesa.
 - A categorização inicial é heurística e baseada na descrição, podendo exigir revisão.
+- O ranking de maiores gastos mostra até 10 despesas individuais do período selecionado. Uma devolução sem vínculo confiável não é atribuída a uma compra específica.
+- A classificação entre gastos essenciais e discricionários é indicativa e baseada em termos explícitos das descrições; os demais ficam como não classificados.
+- O monitor de recorrências sinaliza descrições iguais, na mesma origem, com intervalo de 25–35 dias e variação de valor de até 20%. Mostra uma estimativa anualizada, mas não confirma a existência de uma assinatura ou contrato.
+- As tendências oferecem janelas de 3, 6 ou 12 meses. O OFX precisa informar uma cobertura que abranja o mês completo para que ele seja considerado coberto; períodos desconhecidos não são mostrados como zero.
+- A evolução acumulada representa receitas menos despesas dentro da janela, não o saldo bancário nem a reserva total, pois não há saldo inicial validado.
 
 ## Tecnologias
 
